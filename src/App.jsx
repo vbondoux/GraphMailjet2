@@ -1,12 +1,9 @@
-import React from 'react';
-import GraphPage from './GraphPage';
-
 function App() {
   return (
-    <div style={{ width: '100vw', height: '100vh', backgroundColor: '#f5f5f5' }}>
-      <GraphPage />
+    <div style={{ textAlign: "center", marginTop: "100px" }}>
+      <h1>✅ Test React sans AFRAME</h1>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
