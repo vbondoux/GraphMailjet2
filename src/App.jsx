@@ -1,13 +1,12 @@
 import React from 'react';
 import GraphPage from './GraphPage';
 
-const App = () => {
+function App() {
   return (
-    <div>
-      <h1>📊 Mailjet Graph Live</h1>
+    <div style={{ width: '100vw', height: '100vh', backgroundColor: '#f5f5f5' }}>
       <GraphPage />
     </div>
   );
-};
+}
 
 export default App;
