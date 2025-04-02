@@ -1,9 +1,13 @@
+import React from 'react';
+import GraphPage from './GraphPage';
+
 function App() {
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h1>✅ Test React sans AFRAME</h1>
+    <div style={{ textAlign: 'center' }}>
+      <h1>📊 Mailjet Graph Live</h1>
+      <GraphPage />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
