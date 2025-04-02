@@ -1,101 +1,54 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ForceGraph2D } from 'react-force-graph';
+import ForceGraph2D from 'react-force-graph';
 import axios from 'axios';
 
-function GraphPage() {
-  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-  const fgRef = useRef();
+const GraphPage = () => {
+  const [data, setData] = useState({ nodes: [], links: [] });
+  const graphRef = useRef();
 
   useEffect(() => {
-    fetchGraphData();
+    // Exemple : tu peux remplacer par ton URL Airtable
+    axios.get('https://jsonplaceholder.typicode.com/users').then((res) => {
+      const nodes = res.data.map((user) => ({
+        id: user.email,
+        group: Math.floor(Math.random() * 3) + 1 // 1, 2 ou 3 pour couleur
+      }));
+
+      const links = nodes.map((node) => ({
+        source: 'mailing',
+        target: node.id
+      }));
+
+      setData({
+        nodes: [{ id: 'mailing', group: 0 }, ...nodes],
+        links
+      });
+    });
   }, []);
 
-  const fetchGraphData = async () => {
-    try {
-      const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
-      const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-      const tableName = import.meta.env.VITE_AIRTABLE_TABLE;
-
-      const response = await axios.get(
-        `https://api.airtable.com/v0/${baseId}/${tableName}`,
-        {
-          headers: { Authorization: `Bearer ${apiKey}` },
-        }
-      );
-
-      const records = response.data.records;
-      const mailingNode = { id: 'Mailing', group: 'mailing' };
-      const nodes = [mailingNode];
-      const links = [];
-
-      const contactClicks = {};
-
-      records.forEach((record) => {
-        const email = record.fields.Email;
-        const type = record.fields.Type;
-        const url = record.fields.URL;
-
-        if (!nodes.find((n) => n.id === email)) {
-          nodes.push({ id: email, group: 'contact' });
-          links.push({ source: 'Mailing', target: email });
-        }
-
-        if (type === 'click' && url) {
-          const clickNodeId = `${email}-${url}`;
-          nodes.push({ id: clickNodeId, group: 'click', url });
-          links.push({ source: email, target: clickNodeId });
-
-          contactClicks[email] = (contactClicks[email] || 0) + 1;
-        } else {
-          contactClicks[email] = contactClicks[email] || 0;
-        }
-      });
-
-      // Ajout couleur selon le comportement
-      nodes.forEach((node) => {
-        if (node.group === 'contact') {
-          const clicks = contactClicks[node.id] || 0;
-          if (clicks === 0) node.color = 'yellow';
-          else if (clicks === 1) node.color = 'orange';
-          else node.color = 'green';
-        } else if (node.group === 'mailing') {
-          node.color = '#2196f3';
-        } else if (node.group === 'click') {
-          node.color = '#999';
-        }
-      });
-
-      setGraphData({ nodes, links });
-    } catch (error) {
-      console.error('Erreur lors du fetch Airtable :', error);
-    }
+  const getColor = (group) => {
+    if (group === 1) return 'yellow';
+    if (group === 2) return 'orange';
+    if (group === 3) return 'green';
+    return 'blue';
   };
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
-      <ForceGraph2D
-        ref={fgRef}
-        graphData={graphData}
-        nodeAutoColorBy="group"
-        nodeCanvasObject={(node, ctx, globalScale) => {
-          const label = node.id;
-          const fontSize = 12 / globalScale;
-          ctx.fillStyle = node.color || '#666';
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, 8, 0, 2 * Math.PI, false);
-          ctx.fill();
-          ctx.font = `${fontSize}px Sans-Serif`;
-          ctx.fillStyle = '#333';
-          ctx.fillText(label, node.x + 10, node.y + 4);
-        }}
-        onNodeClick={(node) => {
-          if (node.group === 'click' && node.url) {
-            window.open(node.url, '_blank');
-          }
-        }}
-      />
-    </div>
+    <ForceGraph2D
+      ref={graphRef}
+      graphData={data}
+      nodeAutoColorBy="group"
+      nodeCanvasObject={(node, ctx) => {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 8, 0, 2 * Math.PI, false);
+        ctx.fillStyle = getColor(node.group);
+        ctx.fill();
+        ctx.font = '10px Sans-Serif';
+        ctx.fillStyle = 'black';
+        ctx.fillText(node.id, node.x + 12, node.y + 3);
+      }}
+    />
   );
-}
+};
 
 export default GraphPage;
